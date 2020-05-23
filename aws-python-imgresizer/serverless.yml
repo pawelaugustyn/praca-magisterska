@@ -1,0 +1,74 @@
+service: aws-python-imgresizer
+
+provider:
+  name: aws
+  runtime: python3.8
+  region: us-east-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:*
+      Resource: '*'
+
+functions:
+  resize:
+    handler: handler.start
+    environment:
+      BUCKET: !Ref Bucket
+      REGION: us-east-1
+    events:
+      - http:
+          path: /images
+          method: get
+      - http:
+          path: /images/{image}
+          method: get
+      - http:
+          path: /images/{image}
+          method: put
+      - http:
+          path: /images/{image}
+          method: patch
+      - http:
+          path: /images/{image}
+          method: delete
+
+resources:
+  Resources:
+    Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: aws-python-imgresizer
+        AccessControl: PublicRead
+        WebsiteConfiguration:
+          IndexDocument: index.html
+          ErrorDocument: error.html
+      DeletionPolicy: Retain
+    BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        PolicyDocument:
+          Id: MyPolicy
+          Version: '2012-10-17'
+          Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Effect: Allow
+            Principal: "*"
+            Action: s3:GetObject
+            Resource:
+              Fn::Join:
+              - ''
+              - - 'arn:aws:s3:::'
+                - Ref: Bucket
+                - "/*"
+        Bucket:
+          Ref: Bucket
+
+plugins:
+  - serverless-s3-local
+  - serverless-offline
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    dockerizePip: "non-linux"
