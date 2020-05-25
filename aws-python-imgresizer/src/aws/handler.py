@@ -1,5 +1,8 @@
 from .s3 import File
+from src.common.image import Img
+import base64
 import logging
+import json
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -16,13 +19,25 @@ def getImage(event):
             "body": ""
         }
         return _response(response, event)
+
+    img = Img(file.get(), event)
+    try:
+        img.change()
+    except Exception as e:
+        response = {
+            "statusCode": 400,
+            "body": json.dumps({"message": str(e)})
+        }
+        return response
         
     response = {
-        "statusCode": 301,
-        "body": "",
+        "statusCode": 200,
+        "body": base64.b64encode(img.getBytes().getvalue()),
         "headers": {
-            "location": file.url
-        }
+            'Content-Type': 'image/jpeg',
+            'Cache-Control': 'public, max-age=31536000',
+        },
+        "isBase64Encoded": True
     }
     return _response(response, event)
 

@@ -27,4 +27,8 @@ class File:
         return f"https://{File.BUCKET}.s3.{File.REGION}.amazonaws.com/{self.__name}"
 
     def get(self):
-        pass
+        response = s3.get_object(
+            Bucket=File.BUCKET,
+            Key=self.__name,
+        )
+        return response["Body"].read()
