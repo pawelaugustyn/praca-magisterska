@@ -39,3 +39,7 @@
 **/.serverless
 **/function.zip
 
+
+#Python
+**/*.pyc
+**/__pycache__
