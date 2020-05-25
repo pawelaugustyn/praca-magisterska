@@ -14,7 +14,7 @@ class File:
     def exists(self):
         response = s3.list_objects_v2(
             Bucket=File.BUCKET,
-            Prefix=self.__name,
+            Prefix=self.__name
         )
         for obj in response.get('Contents', []):
             if obj['Key'] == self.__name:
@@ -29,6 +29,28 @@ class File:
     def get(self):
         response = s3.get_object(
             Bucket=File.BUCKET,
-            Key=self.__name,
+            Key=self.__name
         )
         return response["Body"].read()
+
+    def put(self, body, format):
+        s3.put_object(
+            Bucket=File.BUCKET,
+            Key=self.__name,
+            Body=body,
+        )
+
+    def delete(self):
+        s3.delete_object(
+            Bucket=File.BUCKET,
+            Key=self.__name
+        )
+
+    @staticmethod
+    def list():
+        paginator = s3.get_paginator("list_objects_v2")
+        pages = paginator.paginate(Bucket=File.BUCKET)
+        objects = []
+        for page in pages:
+            objects.extend([{"Key": obj["Key"], "Size": obj["Size"]} for obj in page["Contents"]])
+        return objects

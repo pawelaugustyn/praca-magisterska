@@ -1,3 +1,4 @@
+from PIL import UnidentifiedImageError
 from .s3 import File
 from src.common.image import Img
 import base64
@@ -6,29 +7,33 @@ import json
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+QUERY_STRING_PARAMETERS = "queryStringParameters"
+
 def _response(response, event):
     event['response'] = response
     print(event)
     return response
 
+def _return_message(code, message):
+    return {
+        "statusCode": code,
+        "body": json.dumps({"message": message})
+    }
+
+def listImages(event):
+    objs = File.list()
+    return _return_message(200, objs)
+
 def getImage(event):
     file = File(event['pathParameters']['image'])
     if not file.exists():
-        response = {
-            "statusCode": 404,
-            "body": ""
-        }
-        return _response(response, event)
+        return _return_message(404, "not found")
 
-    img = Img(file.get(), event)
+    img = Img(file.get(), event, QUERY_STRING_PARAMETERS)
     try:
         img.change()
     except Exception as e:
-        response = {
-            "statusCode": 400,
-            "body": json.dumps({"message": str(e)})
-        }
-        return response
+        return _return_message(400, str(e))
         
     response = {
         "statusCode": 200,
@@ -42,10 +47,24 @@ def getImage(event):
     return _response(response, event)
 
 def putImage(event):
-    return _response(501, "")
+    file = File(event['pathParameters']['image'])
+    if file.exists():
+        return _return_message(409, "Key already exists")
+    body = event['body']
+    try:
+        img = Img(base64.b64decode(body), event, QUERY_STRING_PARAMETERS)
+    except UnidentifiedImageError:
+        return _return_message(400, "wrong image type")
+    file.put(img.getBytes(), img.format)
+    
+    return _return_message(201, "created")
 
 def modifyImage(event):
     return _response(501, "")
 
 def removeImage(event):
-    return _response(501, "")
+    file = File(event['pathParameters']['image'])
+    if not file.exists():
+        return _return_message(404, "not found")
+    file.delete()
+    return _return_message("200", "deleted")

@@ -4,17 +4,19 @@ import botocore
 import json
 from collections import namedtuple
 from src.aws.handler import (
+    listImages,
     getImage,
     putImage,
-    modifyImage,
     removeImage
 )
 
 handlers = {
+    '/images': {
+        "GET": listImages
+    },
     '/images/{image}': {
         "GET": getImage,
         "PUT": putImage,
-        "PATCH": modifyImage,
         "DELETE": removeImage
     }
 }

@@ -1,24 +1,32 @@
 from PIL import Image
 from src.common.image_resize import ImageResize
+from src.common.image_rotate import ImageRotate
+from src.common.image_blur import ImageBlur
 import base64
 import io
 
-QUERY_STRING_PARAMETERS = "queryStringParameters"
-
 class Img:
-    ACTIONS = {
-        "resize": {
-            "handler": ImageResize,
-            "parameters": (
-                (QUERY_STRING_PARAMETERS, "width"),
-                (QUERY_STRING_PARAMETERS, "height")
-            )
-        }
-    }
-    def __init__(self, image, event):
+    ACTIONS = [ImageResize(), ImageRotate(), ImageBlur()]
+    # ACTIONS = {
+    #     "resize": {
+    #         "handler": ImageResize,
+    #         "parameters": (
+    #             (QUERY_STRING_PARAMETERS, "width"),
+    #             (QUERY_STRING_PARAMETERS, "height")
+    #         )
+    #     },
+    #     "rotate": {
+    #         "handler": ImageRotate,
+    #         "parameters": (
+    #             (QUERY_STRING_PARAMETERS, "side")
+    #         )
+    #     }
+    # }
+    def __init__(self, image, event, parameters_group_name):
         self.__img = self.__load_image(image)
         self.__format = self.__img.format
         self.__event = event
+        self.__parameters_group_name = parameters_group_name
 
     def getBytes(self):
         buffered = io.BytesIO()
@@ -32,24 +40,29 @@ class Img:
     @property
     def size(self):
         return self.__img.size
+
+    @property
+    def format(self):
+        return self.__format
         
     def change(self):
         action = self.__get_action()
         if not action:
             return
-        if action not in self.ACTIONS.keys():
+        actions = {a.name: a for a in self.ACTIONS}
+        if action not in actions.keys():
             raise ValueError(f"Action {action} not supported")
-        params = self.__get_parameters(action)
-        self.__img = self.ACTIONS[action]["handler"]().execute(self.__img, params)
-
-    def __action_provided(self):
-        return self.__event.get(QUERY_STRING_PARAMETERS, {}).get("action", "") > 0
+        params = self.__get_parameters(actions[action])
+        self.__img = actions[action].execute(self.__img, params)
 
     def __get_action(self):
-        return self.__event.get(QUERY_STRING_PARAMETERS, {}).get("action", None)
+        params = self.__event.get(self.__parameters_group_name, {})
+        if not isinstance(params, dict):
+            return
+        return params.get("action", None)
 
     def __get_parameters(self, action):
-        return {p[1]: self.__event.get(p[0], {}).get(p[1], None) for p in self.ACTIONS.get(action, {}).get("parameters", [])}
+        return {p: self.__event.get(self.__parameters_group_name, {}).get(p, None) for p in action.params}
 
     @staticmethod
     def __load_image(img):

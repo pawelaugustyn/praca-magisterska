@@ -31,9 +31,6 @@ functions:
           method: put
       - http:
           path: /images/{image}
-          method: patch
-      - http:
-          path: /images/{image}
           method: delete
 
 resources:

@@ -1,4 +1,5 @@
 from .handler import (
+    listImages,
     getImage,
     putImage,
     modifyImage,
