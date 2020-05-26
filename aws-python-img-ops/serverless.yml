@@ -1,4 +1,4 @@
-service: aws-python-imgresizer
+service: aws-python-img-ops
 
 provider:
   name: aws
@@ -14,7 +14,7 @@ provider:
       Resource: '*'
 
 functions:
-  resize:
+  worker:
     handler: handler.start
     environment:
       BUCKET: !Ref Bucket
@@ -38,31 +38,8 @@ resources:
     Bucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: aws-python-imgresizer
-        AccessControl: PublicRead
-        WebsiteConfiguration:
-          IndexDocument: index.html
-          ErrorDocument: error.html
+        BucketName: aws-python-img-ops
       DeletionPolicy: Retain
-    BucketPolicy:
-      Type: AWS::S3::BucketPolicy
-      Properties:
-        PolicyDocument:
-          Id: MyPolicy
-          Version: '2012-10-17'
-          Statement:
-          - Sid: PublicReadForGetBucketObjects
-            Effect: Allow
-            Principal: "*"
-            Action: s3:GetObject
-            Resource:
-              Fn::Join:
-              - ''
-              - - 'arn:aws:s3:::'
-                - Ref: Bucket
-                - "/*"
-        Bucket:
-          Ref: Bucket
 
 plugins:
   - serverless-s3-local
