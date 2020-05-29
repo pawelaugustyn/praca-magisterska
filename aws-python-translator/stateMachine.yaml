@@ -1,0 +1,49 @@
+{
+  "Comment": "Translate file uploaded to S3 to different language",
+  "StartAt": "Get source language",
+  "States": {
+    "Get source language": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:xxxx",
+      "Next": "Determine translation path"
+    },
+    "Determine translation path": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.sourceLanguage",
+          "StringEquals": "pl",
+          "Next": "Translate from polish to english"
+        },
+        {
+          "Variable": "$.sourceLanguage",
+          "StringEquals": "en",
+          "Next": "Translate from english to polish"
+        }
+      ],
+      "Default": "Unknown language"
+    },
+    "Translate from polish to english": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:yyyy",
+      "Next": "Send translation"
+    },
+    "Translate from english to polish": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:zzzz",
+      "Next": "Send translation"
+    },
+    "Unknown language": {
+      "Type": "Fail",
+      "Cause": "Couldn't determine source language"
+    },
+    "Send translation": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:wwww",
+      "Next": "Finish"
+    },
+    "Finish": {
+      "Type": "Succeed"
+    }
+  }
+}

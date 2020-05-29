@@ -1,0 +1,129 @@
+service: aws-python-translator
+
+provider:
+  name: aws
+  runtime: python3.8
+  region: us-east-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - comprehend:DetectDominantLanguage
+      Resource: '*'
+    - Effect: Allow
+      Action:
+        - translate:Translate*
+      Resource: '*'
+    - Effect: Allow
+      Action:
+        - ses:SendEmail
+        - ses:SendRawEmail
+        - ses:ListIdentities
+        - ses:VerifyEmailIdentity
+        - ses:DeleteIdentity
+      Resource: '*'
+    - Effect: Allow
+      Action: 
+        - states:StartExecution
+      Resource:
+        Fn::Sub: "arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:stateMachine:TranslatorStepFunctionsStateMachine*"
+    - Effect: Allow
+      Action:
+        - s3:*
+      # Resource: 'arn:#{AWS::Partition}:s3:::aws-python-translations/*'
+      Resource: '*'
+
+functions:
+  email-registration:
+    handler: custom_resource.handler
+  trigger-translation:
+    handler: trigger.start
+    environment:
+      SF_ARN:
+        Ref: TranslatorStepFunctionsStateMachine
+    events:
+      - s3:
+          bucket: aws-python-translations
+          event: s3:ObjectCreated:*
+  get-source-lang:
+    handler: getSourceLang.start
+  entopl:
+    handler: translate.start
+    environment:
+      SOURCE: "en"
+      TARGET: "pl"
+  pltoen:
+    handler: translate.start
+    environment:
+      SOURCE: "pl"
+      TARGET: "en"
+  send:
+    handler: send.start
+    environment:
+      ADDRESS: ${opt:email, 'pawelaugustyn15@gmail.com'}
+
+stepFunctions:
+  stateMachines:
+    translator:
+      definition:
+        Comment: Translate file uploaded to S3 to different language
+        StartAt: Get source language
+        States:
+          # Wait:
+          #   Type: Wait
+          #   Seconds: 15
+          #   Next: Get source language
+          Get source language:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [get-source-lang, Arn]
+            Next: Determine translation path
+          Determine translation path:
+            Type: Choice
+            Choices:
+            - Variable: "$.sourceLanguage"
+              StringEquals: pl
+              Next: Translate from polish to english
+            - Variable: "$.sourceLanguage"
+              StringEquals: en
+              Next: Translate from english to polish
+            Default: Unknown language
+          Translate from polish to english:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [pltoen, Arn]
+            Next: Send translation
+          Translate from english to polish:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [entopl, Arn]
+            Next: Send translation
+          Unknown language:
+            Type: Fail
+            Cause: Couldn't determine source language
+          Send translation:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [send, Arn]
+            Next: Finish
+          Finish:
+            Type: Succeed
+
+resources:
+  Resources:
+    RegisterEmail:
+      Type: Custom::EmailIdentity
+      Properties:
+        ServiceToken:
+          Fn::GetAtt: [EmailDashregistrationLambdaFunction, Arn]
+        Email: ${opt:email, 'pawelaugustyn15@gmail.com'}
+
+plugins:
+  - serverless-step-functions
+  - serverless-s3-local
+  - serverless-offline
+  - serverless-python-requirements
+  - serverless-pseudo-parameters
+
+custom:
+  pythonRequirements:
+    dockerizePip: "non-linux"

@@ -2,6 +2,9 @@
 	"folders": [
 		{
 			"path": "aws-python-img-ops"
+		},
+		{
+			"path": "aws-python-translator"
 		}
 	],
 	"settings": {}
