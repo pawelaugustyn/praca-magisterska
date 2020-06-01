@@ -1,0 +1,35 @@
+service: azure-python-sorting
+
+provider:
+  name: azure
+  region: East US
+  runtime: python3.7 
+  subscriptionId: ea948afa-cfbd-4994-8bfe-306fdb39c646
+
+plugins:
+  - serverless-azure-functions
+
+package:
+  exclude:
+    - env/**
+    - .env/**
+    - local.settings.json
+    - .vscode/**
+    - __pycache__/**
+    - node_modules/**
+    - .python_packages/**
+    - .funcignore
+    - package.json
+    - package-lock.json
+    - .gitignore
+    - .git/**
+
+functions:
+  sort:
+    handler: src/handler/sort.main
+    events:
+      - http: true
+        x-azure-settings:
+          methods:
+            - GET
+          authLevel: anonymous

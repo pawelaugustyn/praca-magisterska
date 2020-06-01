@@ -5,6 +5,15 @@
 		},
 		{
 			"path": "aws-python-translator"
+		},
+		{
+			"path": "aws-python-sorting"
+		},
+		{
+			"path": "gcp-python-sorting"
+		},
+		{
+			"path": "azure-python-sorting"
 		}
 	],
 	"settings": {}

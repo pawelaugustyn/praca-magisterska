@@ -1,0 +1,23 @@
+service: aws-python-sorting
+
+provider:
+  name: aws
+  runtime: python3.7
+  region: us-east-1
+
+functions:
+  sort:
+    handler: aws.start
+    memorySize: 2048
+    events:
+      - http:
+          path: /sort
+          method: get
+
+plugins:
+  - serverless-offline
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    dockerizePip: "non-linux"
