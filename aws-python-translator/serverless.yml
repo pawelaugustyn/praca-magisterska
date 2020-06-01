@@ -59,7 +59,7 @@ functions:
   send:
     handler: send.start
     environment:
-      ADDRESS: ${opt:email, 'pawelaugustyn15@gmail.com'}
+      ADDRESS: ${opt:email, 'default'}
 
 stepFunctions:
   stateMachines:
@@ -115,7 +115,7 @@ resources:
       Properties:
         ServiceToken:
           Fn::GetAtt: [EmailDashregistrationLambdaFunction, Arn]
-        Email: ${opt:email, 'pawelaugustyn15@gmail.com'}
+        Email: ${opt:email, 'default'}
 
 plugins:
   - serverless-step-functions

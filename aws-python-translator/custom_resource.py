@@ -1,6 +1,7 @@
 import boto3
 import cfn_resource
 import re
+from email.utils import parseaddr
 handler = cfn_resource.Resource()
 
 client = boto3.client('ses')
@@ -8,6 +9,17 @@ client = boto3.client('ses')
 @handler.create
 def create(event, context):
     address = event['ResourceProperties']['Email']
+    if address == "default":
+        return {
+            'Status': 'SUCCESS',
+            'PhysicalResourceId': prepare_physical_id(address),
+            'Data': {}
+        }
+    if "@" not in parseaddr(address)[1]:
+        return {
+            'Status': 'FAILED',
+            'Reason': 'Incorrect email address'
+        }
     if not identity_exists(address):
         client.verify_email_identity(
             EmailAddress=address
