@@ -14,6 +14,9 @@
 		},
 		{
 			"path": "azure-python-sorting"
+		},
+		{
+			"path": "perf-tests"
 		}
 	],
 	"settings": {}

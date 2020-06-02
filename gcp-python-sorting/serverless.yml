@@ -10,7 +10,7 @@ provider:
 functions:
   sort:
     handler: start
-    memorySize: 2048
+    memorySize: 1024
     events:
       - http: sort
 
