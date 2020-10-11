@@ -7,6 +7,7 @@ provider:
   apiGateway:
     binaryMediaTypes:
       - '*/*'
+    metrics: true
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -16,6 +17,7 @@ provider:
 functions:
   worker:
     handler: handler.start
+    timeout: 10
     environment:
       BUCKET: !Ref Bucket
       REGION: us-east-1

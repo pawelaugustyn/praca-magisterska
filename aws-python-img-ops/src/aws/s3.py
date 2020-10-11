@@ -52,5 +52,5 @@ class File:
         pages = paginator.paginate(Bucket=File.BUCKET)
         objects = []
         for page in pages:
-            objects.extend([{"Key": obj["Key"], "Size": obj["Size"]} for obj in page["Contents"]])
+            objects.extend([{"Key": obj["Key"], "Size": obj["Size"]} for obj in page.get("Contents", [])])
         return objects

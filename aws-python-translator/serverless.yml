@@ -25,7 +25,7 @@ provider:
       Action: 
         - states:StartExecution
       Resource:
-        Fn::Sub: "arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:stateMachine:TranslatorStepFunctionsStateMachine*"
+        Fn::Sub: "arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:stateMachine:Translator*"
     - Effect: Allow
       Action:
         - s3:*
@@ -35,8 +35,10 @@ provider:
 functions:
   email-registration:
     handler: custom_resource.handler
+    timeout: 10
   trigger-translation:
     handler: trigger.start
+    timeout: 15
     environment:
       SF_ARN:
         Ref: TranslatorStepFunctionsStateMachine
@@ -46,18 +48,22 @@ functions:
           event: s3:ObjectCreated:*
   get-source-lang:
     handler: getSourceLang.start
+    timeout: 15
   entopl:
     handler: translate.start
+    timeout: 15
     environment:
       SOURCE: "en"
       TARGET: "pl"
   pltoen:
     handler: translate.start
+    timeout: 15
     environment:
       SOURCE: "pl"
       TARGET: "en"
   send:
     handler: send.start
+    timeout: 15
     environment:
       ADDRESS: ${opt:email, 'default'}
 

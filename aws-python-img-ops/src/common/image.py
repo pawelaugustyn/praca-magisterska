@@ -7,21 +7,6 @@ import io
 
 class Img:
     ACTIONS = [ImageResize(), ImageRotate(), ImageBlur()]
-    # ACTIONS = {
-    #     "resize": {
-    #         "handler": ImageResize,
-    #         "parameters": (
-    #             (QUERY_STRING_PARAMETERS, "width"),
-    #             (QUERY_STRING_PARAMETERS, "height")
-    #         )
-    #     },
-    #     "rotate": {
-    #         "handler": ImageRotate,
-    #         "parameters": (
-    #             (QUERY_STRING_PARAMETERS, "side")
-    #         )
-    #     }
-    # }
     def __init__(self, image, event, parameters_group_name):
         self.__img = self.__load_image(image)
         self.__format = self.__img.format

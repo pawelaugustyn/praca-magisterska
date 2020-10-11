@@ -1,4 +1,3 @@
-# from image import Img
 import boto3
 import botocore
 import json
@@ -31,7 +30,6 @@ def start(event, context):
     return handler(event)
 
 def wrongRequest():
-    print("ROTFL")
     return {
         "statusCode": 400,
         "body": json.dumps({
